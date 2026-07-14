@@ -133,6 +133,73 @@ export function PlayerProvider({ children }) {
     setCurrentTime(time);
   }
 
+  // Register lock-screen / notification media controls once; a ref keeps the
+  // handlers calling the latest closures without re-registering every render.
+  const latestRef = useRef({});
+  latestRef.current = { setIsPlaying, prev, next, seek, goNext };
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.setActionHandler('play', () => latestRef.current.setIsPlaying(true));
+    navigator.mediaSession.setActionHandler('pause', () => latestRef.current.setIsPlaying(false));
+    navigator.mediaSession.setActionHandler('previoustrack', () => latestRef.current.prev());
+    navigator.mediaSession.setActionHandler('nexttrack', () => latestRef.current.goNext());
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (details.seekTime != null) latestRef.current.seek(details.seekTime);
+    });
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+      navigator.mediaSession.setActionHandler('seekto', null);
+    };
+  }, []);
+
+  // Lock-screen / notification metadata (title, artist, artwork).
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    if (!currentSong) {
+      navigator.mediaSession.metadata = null;
+      return;
+    }
+    let artworkUrl = null;
+    const artwork = [];
+    if (currentSong.coverBlob) {
+      artworkUrl = URL.createObjectURL(currentSong.coverBlob);
+      artwork.push({ src: artworkUrl, sizes: '512x512', type: currentSong.coverBlob.type });
+    }
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong.title,
+      artist: currentSong.artist,
+      album: currentSong.album || '',
+      artwork,
+    });
+    return () => {
+      if (artworkUrl) URL.revokeObjectURL(artworkUrl);
+    };
+  }, [currentSong?.id]);
+
+  // Keep the OS-level playback state (and lock-screen play/pause icon) in sync.
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }, [isPlaying]);
+
+  // Report progress so the lock-screen widget can show/scrub a position bar.
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !currentSong?.duration) return;
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: currentSong.duration,
+        playbackRate: 1,
+        position: Math.min(currentTime, currentSong.duration),
+      });
+    } catch {
+      // Some browsers throw if called before metadata is set; safe to ignore.
+    }
+  }, [currentTime, currentSong?.duration]);
+
   function toggleShuffle() {
     setShuffle((prev) => {
       const nextShuffle = !prev;
