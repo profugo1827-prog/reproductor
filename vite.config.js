@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Reproductor',
-        short_name: 'Reproductor',
+        name: 'Contify',
+        short_name: 'Contify',
         description: 'Reproductor de música personal con playlists',
         theme_color: '#121212',
         background_color: '#121212',
