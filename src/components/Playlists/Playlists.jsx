@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAllPlaylists, createPlaylist, renamePlaylist, deletePlaylist } from '../../db/db';
+import { PlaylistCover } from './PlaylistCover';
 
 export function Playlists({ onOpenPlaylist }) {
   const [playlists, setPlaylists] = useState([]);
@@ -56,6 +57,7 @@ export function Playlists({ onOpenPlaylist }) {
       <ul className="playlist-list">
         {playlists.map((p) => (
           <li key={p.id} className="playlist-row">
+            <PlaylistCover songIds={p.songIds} size="sm" />
             {editingId === p.id ? (
               <input
                 type="text"
