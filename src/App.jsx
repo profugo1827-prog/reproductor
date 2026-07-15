@@ -3,6 +3,7 @@ import { PlayerProvider } from './context/PlayerContext';
 import { Library } from './components/Library/Library';
 import { Playlists } from './components/Playlists/Playlists';
 import { PlaylistDetail } from './components/Playlists/PlaylistDetail';
+import { Settings } from './components/Settings/Settings';
 import { Player } from './components/Player/Player';
 import './App.css';
 
@@ -22,8 +23,10 @@ export default function App() {
             <PlaylistDetail playlistId={openPlaylistId} onBack={() => setOpenPlaylistId(null)} />
           ) : tab === 'library' ? (
             <Library />
-          ) : (
+          ) : tab === 'playlists' ? (
             <Playlists onOpenPlaylist={setOpenPlaylistId} />
+          ) : (
+            <Settings />
           )}
         </main>
 
@@ -44,6 +47,13 @@ export default function App() {
               onClick={() => setTab('playlists')}
             >
               Playlists
+            </button>
+            <button
+              type="button"
+              className={tab === 'ajustes' ? 'active' : ''}
+              onClick={() => setTab('ajustes')}
+            >
+              Ajustes
             </button>
           </nav>
         )}

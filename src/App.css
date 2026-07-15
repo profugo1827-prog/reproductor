@@ -67,6 +67,76 @@
   width: 100%;
 }
 
+/* --- Library toolbar / sort / bulk select --- */
+
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sort-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.select-toggle {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.bulk-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bulk-actions button {
+  flex: 1;
+  background: var(--bg-elevated-2);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bulk-actions button:disabled {
+  opacity: 0.5;
+}
+
+.bulk-popover {
+  align-self: flex-start;
+}
+
+.song-checkbox {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.song-group-header {
+  padding: 12px 4px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
 /* --- Song list --- */
 
 .song-list,
@@ -134,18 +204,18 @@
   color: var(--danger);
 }
 
-.reorder-btns {
-  display: flex;
-  flex-direction: column;
+.drag-handle {
+  font-size: 18px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
 }
 
-.reorder-btns button {
-  font-size: 12px;
-  padding: 2px 6px;
-}
-
-.reorder-btns button:disabled {
-  opacity: 0.3;
+.song-row.dragging {
+  opacity: 0.5;
+  background: var(--bg-elevated);
 }
 
 /* --- Song menu popover --- */
@@ -284,6 +354,49 @@
   color: var(--text-muted);
   padding: 0;
   font-weight: 400;
+}
+
+/* --- Settings --- */
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section h2 {
+  margin-bottom: 8px;
+}
+
+.storage-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.storage-bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settings-actions button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.settings-actions button:disabled {
+  opacity: 0.6;
 }
 
 /* --- Mini player --- */
