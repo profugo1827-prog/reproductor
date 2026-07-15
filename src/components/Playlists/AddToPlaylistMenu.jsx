@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { getAllPlaylists, createPlaylist, addSongToPlaylist } from '../../db/db';
+import { getAllPlaylists, createPlaylist, addSongsToPlaylist } from '../../db/db';
 
-export function AddToPlaylistMenu({ songId, onClose }) {
+export function AddToPlaylistMenu({ songId, songIds, onClose }) {
+  const ids = songIds || [songId];
   const [playlists, setPlaylists] = useState(null);
   const [newName, setNewName] = useState('');
 
@@ -15,7 +16,7 @@ export function AddToPlaylistMenu({ songId, onClose }) {
   }
 
   async function handleAdd(playlistId) {
-    await addSongToPlaylist(playlistId, songId);
+    await addSongsToPlaylist(playlistId, ids);
     onClose();
   }
 
@@ -23,7 +24,7 @@ export function AddToPlaylistMenu({ songId, onClose }) {
     const name = newName.trim();
     if (!name) return;
     const playlist = await createPlaylist(name);
-    await addSongToPlaylist(playlist.id, songId);
+    await addSongsToPlaylist(playlist.id, ids);
     onClose();
   }
 
