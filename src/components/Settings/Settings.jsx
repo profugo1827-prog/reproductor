@@ -23,7 +23,7 @@ export function Settings() {
     try {
       const blob = await exportBackup((done, total) => setExportProgress({ done, total }));
       const date = new Date().toISOString().slice(0, 10);
-      downloadBlob(blob, `reproductor-backup-${date}.zip`);
+      downloadBlob(blob, `contify-backup-${date}.zip`);
       setMessage({ type: 'ok', text: 'Backup descargado correctamente.' });
     } catch (err) {
       setMessage({ type: 'error', text: `Error al exportar: ${err.message}` });
