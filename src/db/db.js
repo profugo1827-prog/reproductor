@@ -24,8 +24,7 @@ function makeId() {
 // --- Songs ---
 
 export async function addSong({ title, artist, album, duration, blob, coverBlob }) {
-  const db = await getDB();
-  const song = {
+  return putSong({
     id: makeId(),
     title,
     artist,
@@ -34,9 +33,29 @@ export async function addSong({ title, artist, album, duration, blob, coverBlob 
     blob,
     coverBlob: coverBlob || null,
     addedAt: Date.now(),
-  };
+  });
+}
+
+export async function putSong(song) {
+  const db = await getDB();
   await db.put('songs', song);
   return song;
+}
+
+export async function deleteSongs(ids) {
+  const db = await getDB();
+  const tx = db.transaction(['songs', 'playlists'], 'readwrite');
+  await Promise.all(ids.map((id) => tx.objectStore('songs').delete(id)));
+  const playlists = await tx.objectStore('playlists').getAll();
+  await Promise.all(
+    playlists.map((playlist) => {
+      const filtered = playlist.songIds.filter((id) => !ids.includes(id));
+      if (filtered.length === playlist.songIds.length) return null;
+      playlist.songIds = filtered;
+      return tx.objectStore('playlists').put(playlist);
+    })
+  );
+  await tx.done;
 }
 
 export async function getAllSongs() {
@@ -68,13 +87,16 @@ export async function deleteSong(id) {
 // --- Playlists ---
 
 export async function createPlaylist(name) {
-  const db = await getDB();
-  const playlist = {
+  return putPlaylist({
     id: makeId(),
     name,
     songIds: [],
     createdAt: Date.now(),
-  };
+  });
+}
+
+export async function putPlaylist(playlist) {
+  const db = await getDB();
   await db.put('playlists', playlist);
   return playlist;
 }
@@ -104,10 +126,24 @@ export async function deletePlaylist(id) {
 }
 
 export async function addSongToPlaylist(playlistId, songId) {
+  return addSongsToPlaylist(playlistId, [songId]);
+}
+
+export async function addSongsToPlaylist(playlistId, songIds) {
   const db = await getDB();
   const playlist = await db.get('playlists', playlistId);
-  if (!playlist || playlist.songIds.includes(songId)) return;
-  playlist.songIds.push(songId);
+  if (!playlist) return;
+  for (const songId of songIds) {
+    if (!playlist.songIds.includes(songId)) playlist.songIds.push(songId);
+  }
+  await db.put('playlists', playlist);
+}
+
+export async function reorderPlaylist(playlistId, songIds) {
+  const db = await getDB();
+  const playlist = await db.get('playlists', playlistId);
+  if (!playlist) return;
+  playlist.songIds = songIds;
   await db.put('playlists', playlist);
 }
 
@@ -119,14 +155,3 @@ export async function removeSongFromPlaylist(playlistId, songId) {
   await db.put('playlists', playlist);
 }
 
-export async function moveSongInPlaylist(playlistId, songId, direction) {
-  const db = await getDB();
-  const playlist = await db.get('playlists', playlistId);
-  if (!playlist) return;
-  const index = playlist.songIds.indexOf(songId);
-  const targetIndex = index + direction;
-  if (index === -1 || targetIndex < 0 || targetIndex >= playlist.songIds.length) return;
-  const ids = playlist.songIds;
-  [ids[index], ids[targetIndex]] = [ids[targetIndex], ids[index]];
-  await db.put('playlists', playlist);
-}
