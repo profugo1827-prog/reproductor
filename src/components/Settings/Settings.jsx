@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { getStorageEstimate, formatBytes } from '../../utils/storage';
 import { exportBackup, importBackup, downloadBlob } from '../../utils/backup';
+import { extractMetadata } from '../../utils/metadata';
+import { addSong } from '../../db/db';
+import { getSpotdlConfig, setSpotdlConfig, startDownload, waitForJob, fetchJobFile } from '../../utils/spotdlClient';
 
 export function Settings() {
   const [estimate, setEstimate] = useState(null);
@@ -8,6 +11,47 @@ export function Settings() {
   const [importProgress, setImportProgress] = useState(null);
   const [message, setMessage] = useState(null);
   const fileInputRef = useRef(null);
+
+  const [backendUrl, setBackendUrl] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [spotifyUrl, setSpotifyUrl] = useState('');
+  const [downloadStatus, setDownloadStatus] = useState(null);
+  const [downloadMessage, setDownloadMessage] = useState(null);
+
+  useEffect(() => {
+    const config = getSpotdlConfig();
+    setBackendUrl(config.backendUrl);
+    setApiKey(config.apiKey);
+  }, []);
+
+  function saveSpotdlConfig(next) {
+    setSpotdlConfig(next);
+  }
+
+  async function handleSpotifyDownload() {
+    if (!spotifyUrl.trim()) return;
+    setDownloadMessage(null);
+    setDownloadStatus('Iniciando descarga...');
+    try {
+      const { job_id: jobId } = await startDownload(spotifyUrl.trim());
+      await waitForJob(jobId, {
+        onTick: (s) => setDownloadStatus(s.status === 'pending' ? 'Descargando...' : s.status),
+      });
+      setDownloadStatus('Guardando en la biblioteca...');
+      const file = await fetchJobFile(jobId);
+      if (file.name.endsWith('.zip')) {
+        throw new Error('Ese link trajo varios temas (playlist/álbum) — para eso usá spotdl en tu computadora.');
+      }
+      const meta = await extractMetadata(file);
+      await addSong({ ...meta, blob: file });
+      setDownloadMessage({ type: 'ok', text: `"${meta.title}" se agregó a tu biblioteca.` });
+      setSpotifyUrl('');
+    } catch (err) {
+      setDownloadMessage({ type: 'error', text: err.message });
+    } finally {
+      setDownloadStatus(null);
+    }
+  }
 
   async function refreshEstimate() {
     setEstimate(await getStorageEstimate());
@@ -96,6 +140,45 @@ export function Settings() {
           />
         </div>
         {message && <p className={message.type === 'error' ? 'danger' : 'muted'}>{message.text}</p>}
+      </section>
+
+      <section className="settings-section">
+        <h2>Descargar de Spotify</h2>
+        <p className="muted">
+          Para bajar algún tema suelto cuando no tenés tu computadora a mano. La API key se guarda solo en
+          este dispositivo, nunca se sube al repositorio.
+        </p>
+        <div className="settings-actions">
+          <input
+            type="text"
+            placeholder="URL del backend (https://tu-app.up.railway.app)"
+            value={backendUrl}
+            onChange={(e) => setBackendUrl(e.target.value)}
+            onBlur={() => saveSpotdlConfig({ backendUrl, apiKey })}
+          />
+          <input
+            type="password"
+            placeholder="API key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            onBlur={() => saveSpotdlConfig({ backendUrl, apiKey })}
+          />
+        </div>
+        <div className="settings-actions">
+          <input
+            type="text"
+            placeholder="Link de un track de Spotify"
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            disabled={!!downloadStatus}
+          />
+          <button type="button" onClick={handleSpotifyDownload} disabled={!!downloadStatus || !spotifyUrl.trim()}>
+            {downloadStatus || 'Descargar'}
+          </button>
+        </div>
+        {downloadMessage && (
+          <p className={downloadMessage.type === 'error' ? 'danger' : 'muted'}>{downloadMessage.text}</p>
+        )}
       </section>
     </div>
   );
