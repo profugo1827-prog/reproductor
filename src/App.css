@@ -327,6 +327,46 @@
   gap: 1px;
 }
 
+.playlist-cover-edit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.playlist-cover-btn {
+  position: relative;
+  padding: 0;
+}
+
+.playlist-cover-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.playlist-cover-btn:hover .playlist-cover-overlay,
+.playlist-cover-btn:focus-visible .playlist-cover-overlay {
+  opacity: 1;
+}
+
+.playlist-cover-reset {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0;
+}
+
 /* --- Playlists view --- */
 
 .new-playlist {
