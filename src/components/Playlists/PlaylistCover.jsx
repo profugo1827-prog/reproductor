@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { getSong } from '../../db/db';
+import { useObjectUrl } from '../../hooks/useObjectUrl';
 
-export function PlaylistCover({ songIds, size = 'sm' }) {
+export function PlaylistCover({ songIds, coverBlob, size = 'sm' }) {
   const [urls, setUrls] = useState([]);
   const key = songIds.slice(0, 4).join(',');
+  const customUrl = useObjectUrl(coverBlob);
 
   useEffect(() => {
+    if (coverBlob) return;
     let cancelled = false;
     let objectUrls = [];
 
@@ -24,9 +27,17 @@ export function PlaylistCover({ songIds, size = 'sm' }) {
       objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, coverBlob]);
 
   const className = `playlist-cover playlist-cover-${size}`;
+
+  if (customUrl) {
+    return (
+      <div className={className}>
+        <img src={customUrl} alt="" />
+      </div>
+    );
+  }
 
   if (urls.length === 0) {
     return (

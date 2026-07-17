@@ -57,7 +57,7 @@ export function Playlists({ onOpenPlaylist }) {
       <ul className="playlist-list">
         {playlists.map((p) => (
           <li key={p.id} className="playlist-row">
-            <PlaylistCover songIds={p.songIds} size="sm" />
+            <PlaylistCover songIds={p.songIds} coverBlob={p.coverBlob} size="sm" />
             {editingId === p.id ? (
               <input
                 type="text"
