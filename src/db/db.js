@@ -125,6 +125,14 @@ export async function deletePlaylist(id) {
   await db.delete('playlists', id);
 }
 
+export async function setPlaylistCover(id, coverBlob) {
+  const db = await getDB();
+  const playlist = await db.get('playlists', id);
+  if (!playlist) return;
+  playlist.coverBlob = coverBlob || null;
+  await db.put('playlists', playlist);
+}
+
 export async function addSongToPlaylist(playlistId, songId) {
   return addSongsToPlaylist(playlistId, [songId]);
 }
