@@ -18,7 +18,8 @@ function requireConfig() {
   if (!backendUrl || !apiKey) {
     throw new Error('Falta configurar la URL del backend y la API key.');
   }
-  return { backendUrl: backendUrl.replace(/\/$/, ''), apiKey };
+  const normalizedUrl = /^https?:\/\//i.test(backendUrl) ? backendUrl : `https://${backendUrl}`;
+  return { backendUrl: normalizedUrl.replace(/\/$/, ''), apiKey };
 }
 
 async function safeDetail(res) {
